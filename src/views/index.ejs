@@ -81,11 +81,13 @@
       <h1 class="sr-only">Trabalhos</h1>
 
       <div class="cards">
-
+        <% let i = 1 %> <!-- Acrescentei -->
         <% updatedJobs.forEach( job => { %>
           <div class="card <%= job.status %> " data-id="<%= job.id %>">
             <div class="id column">
-              <%= job.id %>
+              <!-- <%= job.id %> RETIREI --> 
+              <%= i %> <!-- Acrescentei -->
+              <% i++ %> <!-- Acrescentei -->
             </div>
             <div class="name column">
               <%= job.name %>

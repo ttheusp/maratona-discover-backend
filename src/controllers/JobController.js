@@ -7,12 +7,9 @@ module.exports = {
         return res.render('job')
     },
 
-    save(req, res) {
+    async save(req, res) {
         // { name: 'Comer', 'daily-hours': '8', 'total-hours': '40' }
-        let lastId = Job.get()[Job.get().length - 1]?.id ?? 0
-
-        Job.create({
-            id: lastId + 1,
+        await Job.create({
             ...req.body,
             createdAt: Date.now(),
         })
@@ -20,53 +17,41 @@ module.exports = {
         return res.redirect('/')
     },
 
-    show(req, res) {
+    async show(req, res) {
         const { id } = req.params
-        
-        const job = Job.get().find(job => Number(job.id) === Number(id))
-        
+        const profile = await Profile.get()
+
+        const jobs = await Job.get()
+        const job = jobs.find(job => Number(job.id) === Number(id))
         if (!job) return res.status(404).send('Job not found!')
 
-        job.budget = JobUtils.calculateBudget(job, Profile.get()['value-hour'])
+        job.budget = JobUtils.calculateBudget(job, profile['value-hour'])
         
         return res.render('job-edit', { job })
     },
 
-    update(req, res) {
+    async update(req, res) {
         const { id } = req.params
-        
-        const job = Job.get().find(job => Number(job.id) === Number(id))
 
-        if (!job) return res.status(404).send('Job not found!')
-
-        const data = req.body
-
-        const updatedJobs = {
-            ...job,
-            name: data.name,
-            'total-hours': Number(data['total-hours']),
-            'daily-hours': Number(data['daily-hours']),
+        const updatedJob = {
+            name: req.body.name,
+            'total-hours': Number(req.body['total-hours']),
+            'daily-hours': Number(req.body['daily-hours']),
         }
         
-        const newJobs = Job.get().map(job => {
-            if(Number(job.id) === Number(id)){
-                job = updatedJobs
-            }
-            return job
-        })
-
-        Job.update(newJobs)
+        await Job.update(updatedJob, id)
 
         return res.redirect(`/job/${id}`)
     },
 
-    delete(req, res) {
+    async delete(req, res) {
         const { id } = req.params
-        const jobExists = Job.get().some(job => Number(job.id) === Number(id))
-        
+      
+        const jobs = await Job.get()
+        const jobExists = jobs.some(job => Number(job.id) === Number(id))
         if (!jobExists) return res.status(404).send('Job not found!')
 
-        Job.delete(id)
+        await Job.delete(id)
         
         return res.redirect('/')
     }
